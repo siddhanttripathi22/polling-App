@@ -9,8 +9,8 @@ npm run build
 # Return to root (backend)
 cd ..
 
-# Install backend dependencies
-npm ci
+# Install backend dependencies (fixed line)
+npm ci --omit=dev
 
 # Start backend
 npm start
