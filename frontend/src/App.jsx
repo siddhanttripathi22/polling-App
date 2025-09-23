@@ -6,13 +6,10 @@ import TeacherDashboard from './components/TeacherDashboard';
 import StudentInterface from './components/StudentInterface';
 import './App.css';
 
-// Debug environment variables
-console.log('🔍 All env vars:', import.meta.env);
-console.log('🔍 VITE_SOCKET_URL:', import.meta.env.VITE_SOCKET_URL);
+// Temporarily hardcode the URL to test
+const SOCKET_URL = 'https://polling-app-production-49f7.up.railway.app';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://polling-app-production-49f7.up.railway.app';
-
-console.log('🌐 Using Socket URL:', SOCKET_URL);
+console.log('🌐 Using hardcoded Socket URL:', SOCKET_URL);
 
 function App() {
   const [socket, setSocket] = useState(null);
@@ -37,7 +34,7 @@ function App() {
       console.log('📝 Student name:', studentName);
       
       const newSocket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'], // Allow fallback to polling
+        transports: ['websocket', 'polling'],
         timeout: 20000,
         forceNew: true,
         reconnection: true,
