@@ -8,7 +8,7 @@
     "npm": ">=8.0.0"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "npm config set omit dev && node index.js",
     "dev": "nodemon index.js",
     "build": "echo 'No build step required'"
   },
