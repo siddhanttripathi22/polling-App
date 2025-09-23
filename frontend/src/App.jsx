@@ -6,7 +6,7 @@ import TeacherDashboard from './components/TeacherDashboard';
 import StudentInterface from './components/StudentInterface';
 import './App.css';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 function App() {
   const [socket, setSocket] = useState(null);
