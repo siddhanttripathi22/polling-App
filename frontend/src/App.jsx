@@ -6,7 +6,13 @@ import TeacherDashboard from './components/TeacherDashboard';
 import StudentInterface from './components/StudentInterface';
 import './App.css';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+// Debug environment variables
+console.log('🔍 All env vars:', import.meta.env);
+console.log('🔍 VITE_SOCKET_URL:', import.meta.env.VITE_SOCKET_URL);
+
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://polling-app-production-49f7.up.railway.app';
+
+console.log('🌐 Using Socket URL:', SOCKET_URL);
 
 function App() {
   const [socket, setSocket] = useState(null);
@@ -26,7 +32,9 @@ function App() {
 
   useEffect(() => {
     if (userRole && SOCKET_URL) {
-      console.log('Attempting to connect to:', SOCKET_URL);
+      console.log('🔗 Attempting to connect to:', SOCKET_URL);
+      console.log('👤 User role:', userRole);
+      console.log('📝 Student name:', studentName);
       
       const newSocket = io(SOCKET_URL, {
         transports: ['websocket', 'polling'], // Allow fallback to polling
@@ -36,7 +44,8 @@ function App() {
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
-        maxReconnectionAttempts: 5
+        maxReconnectionAttempts: 5,
+        withCredentials: true
       });
 
       newSocket.on('connect', () => {
