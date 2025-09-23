@@ -9,7 +9,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["https://polling-app-ps3h.vercel.app"],
+    origin: ["polling-app-a1c1.vercel.app"],
     methods: ["GET", "POST"]
   }
 });
