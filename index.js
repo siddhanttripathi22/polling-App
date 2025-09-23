@@ -1,3 +1,4 @@
+// backend/index.js
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
@@ -7,18 +8,18 @@ require('dotenv').config();
 const app = express();
 const server = createServer(app);
 
+
 const io = new Server(server, {
   cors: {
-    origin: [
-      "https://polling-app-ps3h.vercel.app"
-     
-    ],
-    methods: ["GET", "POST"]
+    origin: "https://polling-app-ps3h.vercel.app", 
   }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "https://polling-app-ps3h.vercel.app",
+  methods: ["GET", "POST"]
+}));
 app.use(express.json());
 
 // In-memory storage
@@ -29,16 +30,35 @@ let pollHistory = [];
 
 const POLL_TIME_LIMIT = 60; // seconds
 
-// Helper functions (unchanged)
-// function getCurrentPollWithStats() { ... }
-// function calculateResults() { ... }
-// function endPoll() { ... }
+// Helper functions (example)
+function getCurrentPollWithStats() {
+  if (!currentPoll) return null;
+  return {
+    question: currentPoll.question,
+    options: currentPoll.options,
+    votes: currentPoll.votes
+  };
+}
 
-// Socket.io logic (unchanged)
+// Socket.io events
 io.on('connection', (socket) => {
   console.log("✅ Socket connected:", socket.id);
 
-  // all your existing socket handlers...
+  socket.on('joinAsTeacher', () => {
+    teachers.add(socket.id);
+    console.log("Teacher joined:", socket.id);
+  });
+
+  socket.on('joinAsStudent', ({ name }) => {
+    students.set(socket.id, name);
+    console.log("Student joined:", name, socket.id);
+  });
+
+  socket.on('disconnect', () => {
+    teachers.delete(socket.id);
+    students.delete(socket.id);
+    console.log("Socket disconnected:", socket.id);
+  });
 });
 
 // Health check
@@ -46,7 +66,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });
 
-// API route example
+// Example API
 app.get('/api/poll/status', (req, res) => {
   res.json({
     currentPoll: getCurrentPollWithStats(),
@@ -58,5 +78,4 @@ app.get('/api/poll/status', (req, res) => {
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`Health check: /health`);
 });
