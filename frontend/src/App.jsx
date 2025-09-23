@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 import RoleSelection from './components/RoleSelection';
 import TeacherDashboard from './components/TeacherDashboard';
 import StudentInterface from './components/StudentInterface';
 import './App.css';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL; // must be set to Railway backend
 
 function App() {
   const [socket, setSocket] = useState(null);
@@ -15,32 +15,26 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Check if user has already selected a role in this session
     const savedRole = sessionStorage.getItem('userRole');
     const savedName = sessionStorage.getItem('studentName');
-    
     if (savedRole) {
       setUserRole(savedRole);
-      if (savedName) {
-        setStudentName(savedName);
-      }
+      if (savedName) setStudentName(savedName);
     }
   }, []);
 
   useEffect(() => {
     if (userRole) {
-      // Initialize socket connection
       const newSocket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling']
+        transports: ['websocket'] 
       });
 
       newSocket.on('connect', () => {
-        console.log('Connected to server');
+        console.log('Connected to server:', newSocket.id);
         setIsConnected(true);
-        
-        if (userRole === 'teacher') {
-          newSocket.emit('joinAsTeacher');
-        } else if (userRole === 'student' && studentName) {
+
+        if (userRole === 'teacher') newSocket.emit('joinAsTeacher');
+        else if (userRole === 'student' && studentName) {
           newSocket.emit('joinAsStudent', { name: studentName });
         }
       });
@@ -62,62 +56,46 @@ function App() {
 
       setSocket(newSocket);
 
-      return () => {
-        newSocket.close();
-      };
+      return () => newSocket.close();
     }
   }, [userRole, studentName]);
 
   const handleRoleSelect = (role, name = '') => {
     setUserRole(role);
     setStudentName(name);
-    
-    // Save to session storage
     if (role) {
       sessionStorage.setItem('userRole', role);
-      if (name) {
-        sessionStorage.setItem('studentName', name);
-      }
+      if (name) sessionStorage.setItem('studentName', name);
     } else {
       sessionStorage.removeItem('userRole');
       sessionStorage.removeItem('studentName');
     }
   };
 
-  if (!userRole) {
-    return <RoleSelection onRoleSelect={handleRoleSelect} />;
-  }
-
-  if (!isConnected) {
+  if (!userRole) return <RoleSelection onRoleSelect={handleRoleSelect} />;
+  if (!isConnected)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-2xl shadow-xl">
-          <div className="flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-            <span className="text-lg font-medium text-gray-700">Connecting to server...</span>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="bg-white p-8 rounded-2xl shadow-xl flex items-center space-x-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <span className="text-lg font-medium text-gray-700">Connecting to server...</span>
         </div>
       </div>
     );
-  }
 
   return (
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <Routes>
-          <Route 
-            path="/" 
+          <Route
+            path="/"
             element={
               userRole === 'teacher' ? (
                 <TeacherDashboard socket={socket} onRoleChange={handleRoleSelect} />
               ) : (
-                <StudentInterface 
-                  socket={socket} 
-                  studentName={studentName} 
-                  onRoleChange={handleRoleSelect} 
-                />
+                <StudentInterface socket={socket} studentName={studentName} onRoleChange={handleRoleSelect} />
               )
-            } 
+            }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
